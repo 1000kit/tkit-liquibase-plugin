@@ -1,0 +1,3 @@
+include:
+  - project: '1000kit/config/gitlab-ci-template'
+    file: '.gitlab-ci-maven-lib.yml'
