@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.tkit.maven</groupId>
 	<artifactId>tkit-liquibase-plugin</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.2.0-SNAPSHOT</version>
 	<name>tkit-liquibase-plugin</name>
 	<packaging>maven-plugin</packaging>
 
