@@ -1,21 +1,9 @@
 package org.tkit.maven.liquibase;
 
-
-import liquibase.CatalogAndSchema;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.ObjectQuotingStrategy;
-import liquibase.diff.output.DiffOutputControl;
-import liquibase.diff.output.ObjectChangeFilter;
-import liquibase.diff.output.StandardObjectChangeFilter;
 import liquibase.exception.LiquibaseException;
-import liquibase.exception.UnexpectedLiquibaseException;
-import liquibase.integration.commandline.CommandLineUtils;
-import liquibase.logging.LogService;
-import liquibase.resource.ResourceAccessor;
-import liquibase.util.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,6 +17,10 @@ import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.jpa.boot.spi.Bootstrap;
 import org.hibernate.tool.schema.Action;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexReader;
+import org.jboss.jandex.MergeIndexer;
 import org.liquibase.maven.plugins.LiquibaseDatabaseDiff;
 import org.liquibase.maven.plugins.MavenUtils;
 import org.tkit.quarkus.test.docker.DockerTestEnvironment;
@@ -36,41 +28,34 @@ import org.tkit.quarkus.test.docker.DockerTestEnvironment;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.spi.PersistenceUnitTransactionType;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
+//import org.jboss.jandex.MergeIndexer;
 
-@Mojo(name = "diff", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true,
-        requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "diff", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
     /**
      * Location of the output directory.
      */
-    @Parameter(name = "dockerComposeFile", property = "docker.compose.file",
-            defaultValue = "src/test/liquibase/docker-compose.yml")
+    @Parameter(name = "dockerComposeFile", property = "docker.compose.file", defaultValue = "src/test/liquibase/docker-compose.yml")
     protected String dockerComposeFile;
 
     /**
      * The liquibase changeLog file.
      */
-    @Parameter(name = "liquibaseChangeLogFile", property = "liquibase.changeLogFile",
-            defaultValue = "${basedir}/src/main/resources/db/changeLog.xml")
+    @Parameter(name = "liquibaseChangeLogFile", property = "liquibase.changeLogFile", defaultValue = "${basedir}/src/main/resources/db/changeLog.xml")
     protected String liquibaseChangeLogFile;
 
     /**
      * The output file
      */
-    @Parameter(name = "outputFile", property = "liquibase.diffChangeLogFile",
-            defaultValue = "${project.build.directory}/liquibase-diff-changeLog.xml")
+    @Parameter(name = "outputFile", property = "liquibase.diffChangeLogFile", defaultValue = "${project.build.directory}/liquibase-diff-changeLog.xml")
     protected String outputFile;
 
     /**
@@ -211,6 +196,11 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         ppx.setExcludeUnlistedClasses(false);
         ppx.getJarFileUrls().addAll(Arrays.asList(classLoader.getURLs()));
 
+        var classesFromDependencies = getEntitiesFromDependencies();
+        if (classesFromDependencies != null) {
+            ppx.getManagedClassNames().addAll(classesFromDependencies);
+        }
+
         getLog().info("EntityManager dependencies: ");
         ppx.getJarFileUrls().forEach(System.out::println);
 
@@ -221,6 +211,20 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
         EntityManagerFactory ef = builder.build();
         return ef.createEntityManager();
+    }
+
+    /**
+     * Finds all classes in dependencies which are annotated with @Entity
+     * @return
+     * @throws MojoExecutionException
+     */
+    protected List<String> getEntitiesFromDependencies() throws MojoExecutionException {
+        MergeIndexer indexer = new MergeIndexer();
+        loadIndexFromDependencies(indexer);
+        Index index = indexer.complete();
+        DotName dotName = DotName.createSimple("javax.persistence.Entity");
+        var classes = index.getAnnotations(dotName);
+        return classes.stream().map(clazz -> clazz.target().asClass().toString()).collect(Collectors.toList());
     }
 
     /**
@@ -245,6 +249,42 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
             return new URLClassLoader(urls, u);
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to create project classloader", e);
+        }
+    }
+
+    private void loadIndexFromDependencies(final MergeIndexer indexer) throws MojoExecutionException {
+        try {
+            List<String> elements = null;
+            elements = project.getRuntimeClasspathElements();
+
+            if (elements != null && !elements.isEmpty()) {
+                List<URL> tmp = new ArrayList<>();
+                for (int i = 0; i < elements.size(); i++) {
+
+                    String element = elements.get(i);
+                    try {
+                        tmp.add(new File(element).toURI().toURL());
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+                URL[] runtimeUrls = tmp.toArray(new URL[0]);
+                URLClassLoader newLoader = new URLClassLoader(runtimeUrls, Thread.currentThread().getContextClassLoader());
+                Enumeration<URL> items = newLoader.getResources(MergeIndexer.INDEX);
+                while (items.hasMoreElements()) {
+                    URL url = items.nextElement();
+                    indexer.loadFromUrl(url);
+                }
+            }
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error loading index from libraries.", e);
+        }
+    }
+
+    public Index loadFromUrl(URL url) throws Exception {
+        try (InputStream input = url.openStream()) {
+            IndexReader reader = new IndexReader(input);
+            return reader.read();
         }
     }
 
