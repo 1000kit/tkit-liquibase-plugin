@@ -16,11 +16,23 @@ public class MergeIndexer {
     Map<DotName, ClassInfo> classes = new HashMap<>();
 
     public void addIndex(Index index) {
-        annotations.putAll(index.annotations);
-        subclasses.putAll(index.subclasses);
-        implementors.putAll(index.implementors);
+        mergeIndexMaps(index.annotations, annotations);
+        mergeIndexMaps(index.subclasses, subclasses);
+        mergeIndexMaps(index.implementors, implementors);
         classes.putAll(index.classes);
     }
+
+    private <T> void mergeIndexMaps(Map<DotName, List<T>> source,Map<DotName, List<T>> target ){
+        source.entrySet().stream().forEach(entry -> {
+            if (target.containsKey(entry.getKey())) {
+                target.get(entry.getKey()).addAll(entry.getValue());
+            } else {
+
+                target.put(entry.getKey(), entry.getValue());
+            }
+        });
+    }
+
     public Index complete() {
         return new Index(annotations, subclasses, implementors, classes);
     }
