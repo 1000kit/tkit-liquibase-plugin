@@ -113,7 +113,7 @@
             <plugin>
                 <groupId>org.lorislab.maven</groupId>
                 <artifactId>semver-release-maven-plugin</artifactId>
-                <version>0.6.0</version>
+                <version>0.7.0</version>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
