@@ -89,15 +89,3 @@ mvn clean compile tkit-liquibase:diff
 ```
 The result of the execution will be in the `target/liquibase-diff-changeLog.xml` file.
 
-## Release
-
-### Create a release
-
-```bash
-mvn semver-release:release-create
-```
-
-### Create a patch branch
-```bash
-mvn semver-release:patch-create -DpatchVersion=x.x.0
-```

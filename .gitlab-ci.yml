@@ -1,3 +1,0 @@
-include:
-  - project: '1000kit/infra/config/gitlab-ci-template'
-    file: '.gitlab-ci-maven-lib.yml'
