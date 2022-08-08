@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/org.tkit.maven/tkit-liquibase-plugin?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.tkit.maven/tkit-liquibase-plugin)
 
-This plugin use `Testcontainers` with [tkit-quarkus-test](https://gitlab.com/1000kit/libs/quarkus/tkit-quarkus-test) extension to start the database containers
+This plugin use `Testcontainers` with `tkit-quarkus-test` extension to start the database containers
 for `Liquibase` diff action.
 
 The plugin will exexute this steps:
