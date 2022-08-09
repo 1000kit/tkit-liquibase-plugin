@@ -61,11 +61,6 @@
             <artifactId>hibernate-core</artifactId>
             <version>5.4.29.Final</version>
         </dependency>
-         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>1.1.0.Final</version>
-        </dependency>
         <dependency>
             <groupId>org.tkit.quarkus</groupId>
             <artifactId>tkit-quarkus-test</artifactId>
@@ -164,7 +159,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
