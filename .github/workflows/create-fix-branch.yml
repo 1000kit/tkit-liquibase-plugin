@@ -1,0 +1,7 @@
+name: create-fix-branch
+on:
+  workflow_dispatch:
+jobs:
+  fix:
+    uses: 1000kit/tkit-ci-java/.github/workflows/create-fix-branch.yml@main
+    secrets: inherit
