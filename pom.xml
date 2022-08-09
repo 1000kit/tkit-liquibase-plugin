@@ -191,9 +191,6 @@
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
-                                <configuration>
-                                    <additionalparam>-source 8</additionalparam>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
