@@ -1,12 +1,12 @@
 # tkit-liquibase-plugin
 
-1000kit liquibase maven plugin to generate the `DIFF`
+1000kit liquibase maven plugin to generate the `DIFF` of the database.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/org.tkit.maven/tkit-liquibase-plugin?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.tkit.maven/tkit-liquibase-plugin)
 [![GitHub Actions Status](<https://img.shields.io/github/workflow/status/1000kit/tkit-liquibase-plugin/build?logo=GitHub&style=for-the-badge>)](https://github.com/1000kit/tkit-liquibase-plugin/actions/workflows/build.yml)
 
-This plugin use `Testcontainers` with `tkit-quarkus-test` extension to start the database containers
+This plugin use [Testcontainers](https://www.testcontainers.org/) with `tkit-quarkus-test` extension to start the database containers
 for `Liquibase` diff action.
 
 The plugin will exexute this steps:
