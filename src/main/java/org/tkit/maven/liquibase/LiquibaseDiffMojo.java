@@ -1,5 +1,9 @@
 package org.tkit.maven.liquibase;
 
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.spi.PersistenceUnitTransactionType;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
@@ -23,11 +27,9 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.MergeIndexer;
 import org.liquibase.maven.plugins.LiquibaseDatabaseDiff;
 import org.liquibase.maven.plugins.MavenUtils;
-import org.tkit.quarkus.test.docker.DockerTestEnvironment;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.spi.PersistenceUnitTransactionType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +37,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 //import org.jboss.jandex.MergeIndexer;
 
 @Mojo(name = "diff", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
@@ -43,8 +46,8 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     /**
      * Location of the output directory.
      */
-    @Parameter(name = "dockerComposeFile", property = "docker.compose.file", defaultValue = "src/test/liquibase/docker-compose.yml")
-    protected String dockerComposeFile;
+    @Parameter(name = "postgresVersion", property = "postgresVersion")
+    protected String postgresVersion;
 
     /**
      * The liquibase changeLog file.
@@ -104,10 +107,13 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         changeLogFile = liquibaseChangeLogFile;
         project = currentProject;
 
-        DockerTestEnvironment environment = new DockerTestEnvironment(dockerComposeFile);
-        try {
-            environment.start();
+        DockerImageName postgresDockerName = DockerImageName.parse(PostgreSQLContainer.IMAGE).withTag(this.postgresVersion != null ? this.postgresVersion : PostgreSQLContainer.DEFAULT_TAG);
 
+        PostgreSQLContainer liquibaseStateDB = new PostgreSQLContainer(postgresDockerName);
+        PostgreSQLContainer hibernateStateDB = new PostgreSQLContainer(postgresDockerName);
+
+        try {
+            Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(c-> c.start());
             if (properties != null) {
                 System.setProperties(properties);
             }
@@ -116,13 +122,13 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
                 System.setProperty("user.name", "dev");
             }
 
-            username = System.getProperty("liquibase.source.username");
-            password = System.getProperty("liquibase.source.password");
-            url = System.getProperty("liquibase.source.url");
+            username = liquibaseStateDB.getUsername();
+            password = liquibaseStateDB.getPassword();
+            url = liquibaseStateDB.getJdbcUrl();
 
-            referenceUsername = System.getProperty("liquibase.target.username");
-            referencePassword = System.getProperty("liquibase.target.password");
-            referenceUrl = System.getProperty("liquibase.target.url");
+            referenceUsername = hibernateStateDB.getUsername();
+            referencePassword = hibernateStateDB.getPassword();
+            referenceUrl = hibernateStateDB.getJdbcUrl();
 
             getLog().info("--------------------------------------------------------------");
             getLog().info("Execute target database update from Hibernate.");
@@ -132,7 +138,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
             super.execute();
         } finally {
-            environment.stop();
+            Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(c-> c.stop());
         }
     }
 

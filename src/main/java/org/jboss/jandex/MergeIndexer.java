@@ -22,7 +22,7 @@ public class MergeIndexer {
         classes.putAll(index.classes);
     }
 
-    private <T> void mergeIndexMaps(Map<DotName, List<T>> source,Map<DotName, List<T>> target ){
+    private <T> void mergeIndexMaps(Map<DotName, List<T>> source, Map<DotName, List<T>> target) {
         source.entrySet().stream().forEach(entry -> {
             if (target.containsKey(entry.getKey())) {
                 target.get(entry.getKey()).addAll(entry.getValue());
@@ -34,7 +34,7 @@ public class MergeIndexer {
     }
 
     public Index complete() {
-        return new Index(annotations, subclasses, implementors, classes);
+        return Index.create(annotations, subclasses, implementors, classes);
     }
 
     public void loadFromUrl(URL url) throws Exception {
