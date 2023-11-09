@@ -10,12 +10,32 @@ sections:
 template: |
   Plugin maven dependency:
   ```xml
-  <plugin>
-      <groupId>org.tkit.maven</groupId>
-      <artifactId>tkit-liquibase-plugin</artifactId>
-      <version>{{ .Version }}</version>
-  </plugin>
+  <profile>
+    <id>db-diff</id>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.tkit.maven</groupId>
+                <artifactId>tkit-liquibase-plugin</artifactId>
+                <version>{{ .Version }}</version>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>diff</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+  </profile>
   ```
+  ```shell script
+  mvn clean compile -Pdb-diff
+  ```
+  
   {{ range $section := .Sections }}{{ if $section.Items }}### {{ $section.GetTitle }}{{ range $item := $section.Items }}
   * [#{{ $item.GetID }}]({{ $item.GetURL }}) - {{ $item.GetTitle }}{{ end }}{{ end }}
   {{ end }}

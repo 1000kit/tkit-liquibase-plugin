@@ -44,9 +44,29 @@
     </developers>
 
     <properties>
+
+        <!-- Maven configuration -->
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler-plugin.version>3.11.0</maven.compiler-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.gpg-plugin.version>3.1.0</maven.gpg-plugin.version>
+        <maven.source-plugin.version>3.3.0</maven.source-plugin.version>
+        <maven.javadoc-plugin.version>3.6.2</maven.javadoc-plugin.version>
+        <maven.maven-plugin.version>3.10.2</maven.maven-plugin.version>
+        <maven.maven-plugin-api.version>3.9.5</maven.maven-plugin-api.version>
+        <maven.maven-plugin-annotations.version>3.10.2</maven.maven-plugin-annotations.version>
+        <maven.maven-core.version>3.9.5</maven.maven-core.version>
+
+        <liquibase.version>4.24.0</liquibase.version>
+        <testcontainers.version>1.19.1</testcontainers.version>
+        <jandex.version>3.1.5</jandex.version>
+        <hibernate-orm.version>6.2.13.Final</hibernate-orm.version>
+        <postgresql.version>42.6.0</postgresql.version>
+        <jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
     </properties>
 
     <dependencyManagement>
@@ -54,7 +74,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
-                <version>1.17.5</version>
+                <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -66,57 +86,49 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-maven-plugin</artifactId>
-            <version>4.16.1</version>
+            <version>${liquibase.version}</version>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>4.16.1</version>
+            <version>${liquibase.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>org.jboss</groupId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye</groupId>
             <artifactId>jandex</artifactId>
-            <version>2.4.3.Final</version>
+            <version>${jandex.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.1.3.Final</version>
+            <version>${hibernate-orm.version}</version>
         </dependency>
         <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.1.0</version>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta.validation-api.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.maven</groupId>
-            <artifactId>maven-project</artifactId>
-            <version>2.2.1</version>
+            <artifactId>maven-core</artifactId>
+            <version>${maven.maven-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.6.4</version>
+            <version>${maven.maven-plugin-annotations.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.8.6</version>
+            <version>${maven.maven-plugin-api.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
         </dependency>
 
         <dependency>
@@ -128,9 +140,9 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jboss.jandex</groupId>
+                <groupId>io.smallrye</groupId>
                 <artifactId>jandex-maven-plugin</artifactId>
-                <version>1.0.7</version>
+                <version>${jandex.version}</version>
                 <executions>
                     <execution>
                         <id>make-index</id>
@@ -141,19 +153,14 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.lorislab.maven</groupId>
-                <artifactId>semver-release-maven-plugin</artifactId>
-                <version>0.6.0</version>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>${maven.compiler-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.4</version>
+                <version>${maven.maven-plugin.version}</version>
                 <configuration>
                     <goalPrefix>tkit-liquibase</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
@@ -212,7 +219,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.2.1</version>
+                        <version>${maven.source-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -225,7 +232,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.4.0</version>
+                        <version>${maven.javadoc-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -238,7 +245,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>${maven.gpg-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
