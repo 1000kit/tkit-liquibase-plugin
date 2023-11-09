@@ -27,6 +27,7 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.MergeIndexer;
 import org.liquibase.maven.plugins.LiquibaseDatabaseDiff;
 import org.liquibase.maven.plugins.MavenUtils;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -38,7 +39,6 @@ import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-//import org.jboss.jandex.MergeIndexer;
 
 @Mojo(name = "diff", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
@@ -52,7 +52,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     /**
      * The liquibase changeLog file.
      */
-    @Parameter(name = "liquibaseChangeLogFile", property = "liquibase.changeLogFile", defaultValue = "${basedir}/src/main/resources/db/changeLog.xml")
+    @Parameter(name = "liquibaseChangeLogFile", property = "liquibase.changeLogFile", defaultValue = "src/main/resources/db/changeLog.xml")
     protected String liquibaseChangeLogFile;
 
     /**
@@ -97,23 +97,31 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     @Parameter(readonly = true, required = true, defaultValue = "${project}")
     private MavenProject currentProject;
 
+    private static final String LOG_LINE = "--------------------------------------------------------------";
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        logLevel = "INFO";
         verbose = liquibaseVerbose;
         diffChangeLogFile = outputFile;
         changeLogFile = liquibaseChangeLogFile;
         project = currentProject;
 
-        DockerImageName postgresDockerName = DockerImageName.parse(PostgreSQLContainer.IMAGE).withTag(this.postgresVersion != null ? this.postgresVersion : PostgreSQLContainer.DEFAULT_TAG);
+        getLog().info(LOG_LINE);
+        getLog().info("Start docker containers.");
+        getLog().info(LOG_LINE);
 
-        PostgreSQLContainer liquibaseStateDB = new PostgreSQLContainer(postgresDockerName);
-        PostgreSQLContainer hibernateStateDB = new PostgreSQLContainer(postgresDockerName);
+        DockerImageName postgresDockerName = DockerImageName.parse(PostgreSQLContainer.IMAGE)
+                .withTag(this.postgresVersion != null ? this.postgresVersion : PostgreSQLContainer.DEFAULT_TAG);
+
+        PostgreSQLContainer<?> liquibaseStateDB = new PostgreSQLContainer<>(postgresDockerName);
+        PostgreSQLContainer<?> hibernateStateDB = new PostgreSQLContainer<>(postgresDockerName);
 
         try {
-            Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(c-> c.start());
+            Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(GenericContainer::start);
             if (properties != null) {
                 System.setProperties(properties);
             }
@@ -130,15 +138,19 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
             referencePassword = hibernateStateDB.getPassword();
             referenceUrl = hibernateStateDB.getJdbcUrl();
 
-            getLog().info("--------------------------------------------------------------");
+            getLog().info(LOG_LINE);
             getLog().info("Execute target database update from Hibernate.");
-            getLog().info("--------------------------------------------------------------");
-            EntityManager em = startHibernate(referenceUsername, referencePassword, referenceUrl);
-            getLog().info("EntityManager entities: " + em.getMetamodel().getEntities());
-
-            super.execute();
+            getLog().info(LOG_LINE);
+            try (EntityManagerFactory ef = startHibernate(referenceUsername, referencePassword, referenceUrl);
+                 EntityManager em = ef.createEntityManager()) {
+                getLog().info("EntityManager entities: " + em.getMetamodel().getEntities());
+                super.execute();
+            }
+            getLog().info(LOG_LINE);
+            getLog().info("Finished target database update from Hibernate.");
+            getLog().info(LOG_LINE);
         } finally {
-            Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(c-> c.stop());
+            Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(GenericContainer::stop);
         }
     }
 
@@ -169,18 +181,18 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
      * @return the corresponding entity manager.
      * @throws MojoExecutionException if the method fails.
      */
-    protected EntityManager startHibernate(String username, String password, String url) throws MojoExecutionException {
+    protected EntityManagerFactory startHibernate(String username, String password, String url) throws MojoExecutionException {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, Boolean.FALSE.toString());
+        Map<String, Object> hibernateProperties = new HashMap<>();
+        hibernateProperties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, Boolean.FALSE.toString());
 
-        properties.put(AvailableSettings.HBM2DDL_AUTO, Action.CREATE_DROP);
-        properties.put(AvailableSettings.SHOW_SQL, showSql);
-        properties.put(AvailableSettings.FORMAT_SQL, formatSql);
+        hibernateProperties.put(AvailableSettings.HBM2DDL_AUTO, Action.CREATE_DROP);
+        hibernateProperties.put(AvailableSettings.SHOW_SQL, showSql);
+        hibernateProperties.put(AvailableSettings.FORMAT_SQL, formatSql);
 
-        properties.put(AvailableSettings.JPA_JDBC_URL, url);
-        properties.put(AvailableSettings.JPA_JDBC_USER, username);
-        properties.put(AvailableSettings.JPA_JDBC_PASSWORD, password);
+        hibernateProperties.put(AvailableSettings.JAKARTA_JDBC_URL , url);
+        hibernateProperties.put(AvailableSettings.JAKARTA_JDBC_USER, username);
+        hibernateProperties.put(AvailableSettings.JAKARTA_JDBC_PASSWORD, password);
 
         URLClassLoader classLoader = createClassLoader();
 
@@ -195,7 +207,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
                 return classLoader;
             }
         };
-        ppx.getProperties().putAll(properties);
+        ppx.getProperties().putAll(hibernateProperties);
         ppx.setName(LiquibaseDiffMojo.class.getSimpleName());
         ppx.setProviderClassName(org.hibernate.jpa.HibernatePersistenceProvider.class.getName());
         ppx.setTransactionType(PersistenceUnitTransactionType.RESOURCE_LOCAL);
@@ -208,15 +220,14 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         }
 
         getLog().info("EntityManager dependencies: ");
-        ppx.getJarFileUrls().forEach(System.out::println);
+        ppx.getJarFileUrls().forEach(x -> getLog().info(x.toString()));
 
 
         EntityManagerFactoryBuilderImpl builder = (EntityManagerFactoryBuilderImpl)
                 Bootstrap.getEntityManagerFactoryBuilder(ppx, properties, new ClassLoaderServiceImpl(classLoader));
         builder.getConfigurationValues();
 
-        EntityManagerFactory ef = builder.build();
-        return ef.createEntityManager();
+        return builder.build();
     }
 
     /**

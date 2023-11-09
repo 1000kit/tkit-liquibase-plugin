@@ -2,7 +2,7 @@ name: build-release
 on:
   push:
     tags:
-      - '*'
+      - '**'
 jobs:
   java:
     uses: 1000kit/tkit-ci-java/.github/workflows/build-release.yml@main
