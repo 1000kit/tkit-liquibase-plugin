@@ -1,6 +1,7 @@
 package org.tkit.maven.liquibase;
 
 
+import com.github.dockerjava.api.DockerClient;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.spi.PersistenceUnitTransactionType;
@@ -27,6 +28,7 @@ import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.MergeIndexer;
 import org.liquibase.maven.plugins.LiquibaseDatabaseDiff;
 import org.liquibase.maven.plugins.MavenUtils;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -121,6 +123,11 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         PostgreSQLContainer<?> hibernateStateDB = new PostgreSQLContainer<>(postgresDockerName);
 
         try {
+
+            // workaround to activate docker
+            DockerClientFactory.instance().client().pingCmd().exec();
+
+            // start containers
             Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(GenericContainer::start);
             if (properties != null) {
                 System.setProperties(properties);
