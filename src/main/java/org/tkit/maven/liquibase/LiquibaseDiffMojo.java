@@ -1,7 +1,6 @@
 package org.tkit.maven.liquibase;
 
 
-import com.github.dockerjava.api.DockerClient;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.spi.PersistenceUnitTransactionType;
@@ -18,6 +17,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.jpa.boot.spi.Bootstrap;
@@ -182,7 +182,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     /**
      * Start the Hibernate entity manager.
      *
-     * @param username the database user name.
+     * @param username the database username.
      * @param password the database password.
      * @param url      the database URL.
      * @return the corresponding entity manager.
@@ -200,6 +200,10 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         hibernateProperties.put(AvailableSettings.JAKARTA_JDBC_URL , url);
         hibernateProperties.put(AvailableSettings.JAKARTA_JDBC_USER, username);
         hibernateProperties.put(AvailableSettings.JAKARTA_JDBC_PASSWORD, password);
+
+        hibernateProperties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, TenantIdentifierResolver.class.getName() );
+
+        getLog().info("Hibernate properties: " + hibernateProperties);
 
         URLClassLoader classLoader = createClassLoader();
 
