@@ -22,11 +22,11 @@ import java.util.*;
 public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
 
     /**
-     * Skip changes map <change_name>comma separated list of specific names</change_name>
+     * Skip changes map change_name - comma separated list of specific names
      * For example skip drop tables:
-     *      <dropTable>table1,table2</dropTable>
+     *      dropTable - table1,table2
      * For example skip create tables:
-     *      <createTable>table1,table2</createTable>
+     *      createTable - table1,table2
      */
     @Parameter(name = "skipChanges", property = "liquibase.skipChange")
     protected Map<String,String> skipChanges;
