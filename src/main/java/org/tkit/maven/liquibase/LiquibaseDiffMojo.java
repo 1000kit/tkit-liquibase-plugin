@@ -41,6 +41,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Liquibase diff mojo
+ */
 @Mojo(name = "diff", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
@@ -98,6 +101,9 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     @Parameter(readonly = true, required = true, defaultValue = "${project}")
     private MavenProject currentProject;
 
+    /**
+     * Log line.
+     */
     private static final String LOG_LINE = "--------------------------------------------------------------";
 
     /**
@@ -242,8 +248,8 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
     /**
      * Finds all classes in dependencies which are annotated with @Entity
-     * @return
-     * @throws MojoExecutionException
+     * @return list of dependencies
+     * @throws MojoExecutionException error get entities from dependencies
      */
     protected List<String> getEntitiesFromDependencies() throws MojoExecutionException {
         MergeIndexer indexer = new MergeIndexer();
@@ -257,7 +263,8 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     /**
      * Returns an isolated classloader.
      *
-     * @return URLClassLoader
+     * @return URLClassLoader from class-path
+     * @throws MojoExecutionException error creating URL class-loader.
      */
     protected URLClassLoader createClassLoader() throws MojoExecutionException {
         try {
@@ -279,28 +286,32 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         }
     }
 
+    /**
+     * Loading index from dependencies.
+     * @param indexer indexer.
+     * @throws MojoExecutionException error loading dependencies.
+     */
     private void loadIndexFromDependencies(final MergeIndexer indexer) throws MojoExecutionException {
         try {
-            List<String> elements = null;
+            List<String> elements;
             elements = project.getRuntimeClasspathElements();
 
             if (elements != null && !elements.isEmpty()) {
                 List<URL> tmp = new ArrayList<>();
-                for (int i = 0; i < elements.size(); i++) {
-
-                    String element = elements.get(i);
+                for (String element : elements) {
                     try {
                         tmp.add(new File(element).toURI().toURL());
                     } catch (IOException ioException) {
-                        ioException.printStackTrace();
+                        getLog().error(ioException);
                     }
                 }
                 URL[] runtimeUrls = tmp.toArray(new URL[0]);
-                URLClassLoader newLoader = new URLClassLoader(runtimeUrls, Thread.currentThread().getContextClassLoader());
-                Enumeration<URL> items = newLoader.getResources(MergeIndexer.INDEX);
-                while (items.hasMoreElements()) {
-                    URL url = items.nextElement();
-                    indexer.loadFromUrl(url);
+                try (URLClassLoader newLoader = new URLClassLoader(runtimeUrls, Thread.currentThread().getContextClassLoader())) {
+                    Enumeration<URL> items = newLoader.getResources(MergeIndexer.INDEX);
+                    while (items.hasMoreElements()) {
+                        URL url = items.nextElement();
+                        indexer.loadFromUrl(url);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -308,7 +319,13 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         }
     }
 
-    public Index loadFromUrl(URL url) throws Exception {
+    /**
+     * Load from URL.
+     * @param url url
+     * @return index from url.
+     * @throws IOException error loading index.
+     */
+    public Index loadFromUrl(URL url) throws IOException {
         try (InputStream input = url.openStream()) {
             IndexReader reader = new IndexReader(input);
             return reader.read();

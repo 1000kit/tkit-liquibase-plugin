@@ -18,6 +18,9 @@ import org.liquibase.maven.plugins.AbstractLiquibaseChangeLogMojo;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+/**
+ * Check changes mojo
+ */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
 
@@ -55,8 +58,15 @@ public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
     @Parameter(readonly = true, required = true, defaultValue = "${project}")
     private MavenProject currentProject;
 
+    /**
+     * Log line.
+     */
     private static final String LOG_LINE = "--------------------------------------------------------------";
 
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         logLevel = "INFO";
@@ -74,6 +84,10 @@ public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
 
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void performLiquibaseTask(Liquibase liquibase) throws LiquibaseException {
 
