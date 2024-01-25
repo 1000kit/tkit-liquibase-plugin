@@ -57,15 +57,15 @@
         <maven.source-plugin.version>3.3.0</maven.source-plugin.version>
         <maven.javadoc-plugin.version>3.6.2</maven.javadoc-plugin.version>
         <maven.maven-plugin.version>3.10.2</maven.maven-plugin.version>
-        <maven.maven-plugin-api.version>3.9.5</maven.maven-plugin-api.version>
+        <maven.maven-plugin-api.version>3.9.6</maven.maven-plugin-api.version>
         <maven.maven-plugin-annotations.version>3.10.2</maven.maven-plugin-annotations.version>
-        <maven.maven-core.version>3.9.5</maven.maven-core.version>
+        <maven.maven-core.version>3.9.6</maven.maven-core.version>
 
         <liquibase.version>4.25.0</liquibase.version>
-        <testcontainers.version>1.19.2</testcontainers.version>
-        <jandex.version>3.1.5</jandex.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
+        <jandex.version>3.1.6</jandex.version>
         <hibernate-orm.version>6.2.13.Final</hibernate-orm.version>
-        <postgresql.version>42.6.0</postgresql.version>
+        <postgresql.version>42.7.1</postgresql.version>
         <jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
     </properties>
 
@@ -117,6 +117,7 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>${maven.maven-core.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
@@ -128,7 +129,7 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>${maven.maven-plugin-api.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
