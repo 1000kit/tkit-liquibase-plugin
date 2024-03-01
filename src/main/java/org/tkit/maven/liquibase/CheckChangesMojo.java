@@ -16,6 +16,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.liquibase.maven.plugins.AbstractLiquibaseChangeLogMojo;
 import java.io.ByteArrayOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -70,6 +72,12 @@ public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         logLevel = "INFO";
+
+        if (!Files.exists(Path.of(liquibaseChangeLogFile))) {
+            getLog().info("Liquibase change log file does not exists. File: " + liquibaseChangeLogFile);
+            return;
+        }
+
         changeLogFile = liquibaseChangeLogFile;
         project = currentProject;
         verbose = liquibaseVerbose;
