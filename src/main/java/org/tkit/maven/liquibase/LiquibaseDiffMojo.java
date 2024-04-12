@@ -8,6 +8,8 @@ import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
 import liquibase.exception.LiquibaseException;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -101,6 +103,13 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
     @Parameter(readonly = true, required = true, defaultValue = "${project}")
     private MavenProject currentProject;
 
+
+    @Parameter(readonly = true, required = true, defaultValue = "${session}")
+    protected MavenSession currentSession;
+
+    @Parameter(readonly = true, required = true, defaultValue = "${mojoExecution}")
+    protected MojoExecution currentMojoExecution;
+
     /**
      * Log line.
      */
@@ -116,6 +125,8 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         diffChangeLogFile = outputFile;
         changeLogFile = liquibaseChangeLogFile;
         project = currentProject;
+        session = currentSession;
+        mojoExecution = currentMojoExecution;
 
         getLog().info(LOG_LINE);
         getLog().info("Start docker containers.");
