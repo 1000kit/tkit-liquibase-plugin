@@ -7,6 +7,8 @@ import liquibase.change.core.DropTableChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.exception.LiquibaseException;
 import liquibase.serializer.core.xml.XMLChangeLogSerializer;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -60,6 +62,12 @@ public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
     @Parameter(readonly = true, required = true, defaultValue = "${project}")
     private MavenProject currentProject;
 
+    @Parameter(readonly = true, required = true, defaultValue = "${session}")
+    protected MavenSession currentSession;
+
+    @Parameter(readonly = true, required = true, defaultValue = "${mojoExecution}")
+    protected MojoExecution currentMojoExecution;
+
     /**
      * Log line.
      */
@@ -80,6 +88,8 @@ public class CheckChangesMojo extends AbstractLiquibaseChangeLogMojo {
 
         changeLogFile = liquibaseChangeLogFile;
         project = currentProject;
+        session = currentSession;
+        mojoExecution = currentMojoExecution;
         verbose = liquibaseVerbose;
 
         username = "quarkus";
