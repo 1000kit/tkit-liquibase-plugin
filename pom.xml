@@ -58,7 +58,7 @@
         <maven.javadoc-plugin.version>3.6.3</maven.javadoc-plugin.version>
         <maven.maven-plugin.version>3.12.0</maven.maven-plugin.version>
         <maven.maven-plugin-api.version>3.9.6</maven.maven-plugin-api.version>
-        <maven.maven-plugin-annotations.version>3.12.0</maven.maven-plugin-annotations.version>
+        <maven.maven-plugin-annotations.version>3.13.0</maven.maven-plugin-annotations.version>
         <maven.maven-core.version>3.9.6</maven.maven-core.version>
 
         <liquibase.version>4.27.0</liquibase.version>
