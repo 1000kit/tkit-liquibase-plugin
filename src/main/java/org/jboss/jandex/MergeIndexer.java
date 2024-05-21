@@ -2,6 +2,7 @@ package org.jboss.jandex;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +23,13 @@ public class MergeIndexer {
         classes.putAll(index.classes);
     }
 
-    private <T> void mergeIndexMaps(Map<DotName, List<T>> source, Map<DotName, List<T>> target) {
-        source.entrySet().stream().forEach(entry -> {
-            if (target.containsKey(entry.getKey())) {
-                target.get(entry.getKey()).addAll(entry.getValue());
+    private <T> void mergeIndexMaps(Map<DotName, T[]> source, Map<DotName, List<T>> target) {
+        source.forEach((key, value) -> {
+            if (target.containsKey(key)) {
+                target.get(key).addAll(List.of(value));
             } else {
 
-                target.put(entry.getKey(), entry.getValue());
+                target.put(key, List.of(value));
             }
         });
     }
