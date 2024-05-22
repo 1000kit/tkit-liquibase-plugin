@@ -66,7 +66,7 @@
         <jandex.version>3.2.0</jandex.version>
         <hibernate-orm.version>6.2.13.Final</hibernate-orm.version>
         <postgresql.version>42.7.3</postgresql.version>
-        <jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
+        <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
     </properties>
 
     <dependencyManagement>
