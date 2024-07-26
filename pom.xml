@@ -61,7 +61,7 @@
         <maven.maven-plugin-annotations.version>3.13.1</maven.maven-plugin-annotations.version>
         <maven.maven-core.version>3.9.8</maven.maven-core.version>
 
-        <liquibase.version>4.28.0</liquibase.version>
+        <liquibase.version>4.29.0</liquibase.version>
         <testcontainers.version>1.19.8</testcontainers.version>
         <jandex.version>3.2.0</jandex.version>
         <hibernate-orm.version>6.2.13.Final</hibernate-orm.version>
