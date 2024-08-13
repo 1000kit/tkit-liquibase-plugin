@@ -28,8 +28,7 @@ public class MergeIndexer {
             if (target.containsKey(key)) {
                 target.get(key).addAll(List.of(value));
             } else {
-
-                target.put(key, List.of(value));
+                target.put(key, new ArrayList<>(List.of(value)));
             }
         });
     }

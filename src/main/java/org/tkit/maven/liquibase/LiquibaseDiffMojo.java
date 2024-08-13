@@ -50,7 +50,7 @@ import java.util.stream.Stream;
 public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
     /**
-     * Location of the output directory.
+     * Postgres docker image version
      */
     @Parameter(name = "postgresVersion", property = "postgresVersion")
     protected String postgresVersion;
@@ -72,6 +72,12 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
      */
     @Parameter(name = "showSql", property = "liquibase.hibernate.showSql", defaultValue = "true")
     protected String showSql;
+
+    /**
+     * Scan external libs for entities
+     */
+    @Parameter(name = "externalLibs", property = "jandex.externalLibs", defaultValue = "true")
+    protected boolean externalLibs;
 
     /**
      * Show hibernate format SQL
@@ -241,9 +247,17 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         ppx.setExcludeUnlistedClasses(false);
         ppx.getJarFileUrls().addAll(Arrays.asList(classLoader.getURLs()));
 
-        var classesFromDependencies = getEntitiesFromDependencies();
-        if (classesFromDependencies != null) {
-            ppx.getManagedClassNames().addAll(classesFromDependencies);
+        if (externalLibs) {
+            getLog().info("Search external libraries for entities.");
+            var classesFromDependencies = getEntitiesFromDependencies();
+            if (classesFromDependencies != null) {
+                getLog().info("External entities: " + classesFromDependencies);
+                ppx.getManagedClassNames().addAll(classesFromDependencies);
+            } else {
+                getLog().info("No external entities found.");
+            }
+        } else {
+            getLog().info("Browsing external libraries for entities is disabled");
         }
 
         getLog().info("EntityManager dependencies: ");
@@ -266,8 +280,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         MergeIndexer indexer = new MergeIndexer();
         loadIndexFromDependencies(indexer);
         Index index = indexer.complete();
-        DotName dotName = DotName.createSimple("javax.persistence.Entity");
-        var classes = index.getAnnotations(dotName);
+        var classes = index.getAnnotations(DotName.createSimple(jakarta.persistence.Entity.class.getName()));
         return classes.stream().map(clazz -> clazz.target().asClass().toString()).collect(Collectors.toList());
     }
 
@@ -321,25 +334,13 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
                     Enumeration<URL> items = newLoader.getResources(MergeIndexer.INDEX);
                     while (items.hasMoreElements()) {
                         URL url = items.nextElement();
+                        getLog().info("External lib: " + url);
                         indexer.loadFromUrl(url);
                     }
                 }
             }
         } catch (Exception e) {
             throw new MojoExecutionException("Error loading index from libraries.", e);
-        }
-    }
-
-    /**
-     * Load from URL.
-     * @param url url
-     * @return index from url.
-     * @throws IOException error loading index.
-     */
-    public Index loadFromUrl(URL url) throws IOException {
-        try (InputStream input = url.openStream()) {
-            IndexReader reader = new IndexReader(input);
-            return reader.read();
         }
     }
 
