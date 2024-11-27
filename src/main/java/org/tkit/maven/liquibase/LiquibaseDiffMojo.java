@@ -25,7 +25,6 @@ import org.hibernate.jpa.boot.spi.Bootstrap;
 import org.hibernate.tool.schema.Action;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
-import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.MergeIndexer;
 import org.liquibase.maven.plugins.LiquibaseDatabaseDiff;
 import org.liquibase.maven.plugins.MavenUtils;
@@ -36,7 +35,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -133,6 +131,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         project = currentProject;
         session = currentSession;
         mojoExecution = currentMojoExecution;
+        analyticsEnabled = false;
 
         getLog().info(LOG_LINE);
         getLog().info("Start docker containers.");
