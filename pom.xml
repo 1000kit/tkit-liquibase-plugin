@@ -62,7 +62,7 @@
         <maven.maven-core.version>3.9.11</maven.maven-core.version>
 
         <liquibase.version>4.33.0</liquibase.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>2.0.0</testcontainers.version>
         <jandex.version>3.4.0</jandex.version>
         <hibernate-orm.version>6.5.2.Final</hibernate-orm.version>
         <postgresql.version>42.7.8</postgresql.version>
