@@ -3,7 +3,7 @@ package org.tkit.maven.liquibase;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.spi.PersistenceUnitTransactionType;
+import jakarta.persistence.PersistenceUnitTransactionType;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
@@ -30,7 +30,7 @@ import org.liquibase.maven.plugins.LiquibaseDatabaseDiff;
 import org.liquibase.maven.plugins.MavenUtils;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -99,7 +100,7 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
      * Plugin properties
      */
     @Parameter(name = "properties")
-    protected Properties properties;
+    protected Map<String, Object> properties;
 
     /**
      * The project being built.
@@ -140,8 +141,8 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
         DockerImageName postgresDockerName = DockerImageName.parse(PostgreSQLContainer.IMAGE)
                 .withTag(this.postgresVersion != null ? this.postgresVersion : PostgreSQLContainer.DEFAULT_TAG);
 
-        PostgreSQLContainer<?> liquibaseStateDB = new PostgreSQLContainer<>(postgresDockerName);
-        PostgreSQLContainer<?> hibernateStateDB = new PostgreSQLContainer<>(postgresDockerName);
+        PostgreSQLContainer liquibaseStateDB = new PostgreSQLContainer(postgresDockerName);
+        PostgreSQLContainer hibernateStateDB = new PostgreSQLContainer(postgresDockerName);
 
         try {
 
@@ -151,7 +152,14 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
             // start containers
             Stream.of(liquibaseStateDB, hibernateStateDB).parallel().forEach(GenericContainer::start);
             if (properties != null) {
-                System.setProperties(properties);
+                Map<String, String> map = System.getProperties()
+                        .stringPropertyNames()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                Function.identity(),
+                                System.getProperties()::getProperty
+                        ));
+                properties.putAll(map);
             }
 
             if (liquibaseDevUser) {
@@ -261,7 +269,6 @@ public class LiquibaseDiffMojo extends LiquibaseDatabaseDiff {
 
         getLog().info("EntityManager dependencies: ");
         ppx.getJarFileUrls().forEach(x -> getLog().info(x.toString()));
-
 
         EntityManagerFactoryBuilderImpl builder = (EntityManagerFactoryBuilderImpl)
                 Bootstrap.getEntityManagerFactoryBuilder(ppx, properties, new ClassLoaderServiceImpl(classLoader));
