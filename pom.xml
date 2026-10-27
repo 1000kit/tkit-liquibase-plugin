@@ -10,7 +10,7 @@
     <name>tkit-liquibase-plugin</name>
     <packaging>maven-plugin</packaging>
     <description>tkit liquibase maven plugin</description>
-    <url>https://gitlab.com/1000kit/maven/tkit-liquibase-plugin</url>
+    <url>https://github.com/1000kit/tkit-liquibase-plugin</url>
 
     <licenses>
         <license>
@@ -21,9 +21,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://gitlab.com/1000kit/maven/tkit-liquibase-plugin.git</connection>
-        <developerConnection>scm:git:git@gitlab.com:1000kit/maven/tkit-liquibase-plugin.git</developerConnection>
-        <url>https://gitlab.com/1000kit/maven/tkit-liquibase-plugin</url>
+        <connection>scm:git:https://github.com/1000kit/tkit-liquibase-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:1000kit/tkit-liquibase-plugin.git</developerConnection>
+        <url>https://github.com/1000kit/tkit-liquibase-plugin</url>
     </scm>
 
     <organization>
