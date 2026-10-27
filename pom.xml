@@ -110,6 +110,11 @@
             <version>${hibernate-orm.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-scan-jandex</artifactId>
+            <version>${hibernate-orm.version}</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
             <version>${jakarta.validation-api.version}</version>
