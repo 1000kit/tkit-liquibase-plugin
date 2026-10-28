@@ -65,7 +65,7 @@
         <liquibase.version>4.33.0</liquibase.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <jandex.version>3.6.0</jandex.version>
-        <hibernate-orm.version>7.4.13.Final</hibernate-orm.version>
+        <hibernate-orm.version>7.4.14.Final</hibernate-orm.version>
         <postgresql.version>42.7.11</postgresql.version>
         <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
     </properties>
